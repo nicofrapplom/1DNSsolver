@@ -3,18 +3,15 @@
 File di input combinato
 Creato il: Tue Mar 18 16:00:00 2025
 @author: d.zaffino
-
-Script modificato per compatibilità con la nuova struttura tunnel_data e ottimizzato.
 """
 from collections import deque
-from models.tunnel import Tunnel # Si assume che la classe Tunnel sia definita qui
-import copy # Per deepcopy
+from models.geometry import Geometry # Geometry class defined here
+import copy # For deepcopy
 
 def load_geometry(geometry_data_input):
     """Load data from geometry_input and create the Geometry object with its gerarchical structure"""
-    """Carica i dati dagli input e crea l'oggetto Tunnel con la struttura gerarchica."""
     try:
-        # Calcola le coordinate assolute e relative delle Branches
+        # Computes absolute and relative coordinates of the branches
         branches_data_with_coordinates = to_grafo(geometry_data_input)
 
         return Geometry(
@@ -35,45 +32,43 @@ def load_geometry(geometry_data_input):
         raise
         # return None # O gestire l'errore come appropriato per l'applicazione
 
-def to_grafo(tunnel_data_input):
+def to_grafo(geometry_data_input):
     """
-    Calcola le coordinate assolute delle Branches e aggiorna i dati dei rami
-    (start_point, Tubes, alpha, delta, TGM) per riflettere queste coordinate assolute.
-    Conserva anche una snapshot dei dati originali di ciascuna branch.
+    Computes absolute coordinates of the branches and updates other branches data
+    (start_point, alpha, delta, ...) to reflect absolute coordinates.
+    Stores a snapshot of the original data.
     """
-    branches_data_dict = tunnel_data_input.get("branches", {})
-    boundary_data = tunnel_data_input.get("Boundary", {})
+    branches_data_dict = geometry_data_input.get("branches", {})
+    boundary_data = geometry_data_input.get("Boundary", {})
 
     if not branches_data_dict:
-        # Non è un errore fatale di per sé, potrebbe essere un tunnel vuoto.
-        # Restituire un dizionario vuoto o gestire come appropriato.
-        print("Avviso: Nessun dato 'branches' trovato in tunnel_data.")
+        # Not a fatal error, could be an empty geometry.
+        # Return an empty disctionary of treat as needed.
+        print("Warning: No data 'branches' found in geometry_data.")
         return {}
 
-    # Non è strettamente necessario avere Boundary se le coordinate sono tutte relative
-    # o se la prima branch ha uno start_point[0] esplicito.
-    # Tuttavia, la logica corrente si basa su Boundary per trovare la/le prime branch.
+    # Attention! Boundary to rework and add to load_inputs()
     if not boundary_data:
-        print("Avviso: Nessun dato 'Boundary' trovato in tunnel_data. Il calcolo potrebbe fallire se le branch si riferiscono a Boundary.")
+        print("Warning: No data 'Boundary' found in tunnel_data. The simulation may fail if the branch refers to Boundary.")
         # start_boundary = None # Non usato direttamente se il loop sotto non trova nulla
 
     branches_with_coordinates = {}
 
-    max_num_tubes_in_branch = 0
+    max_num_components_in_branch = 0
     if branches_data_dict.values():
-        max_num_tubes_in_branch = max(
-            (len(b.get("Tubes", {})) for b in branches_data_dict.values()),
+        max_num_components_in_branch = max(
+            (len(b.get("Component", {})) for b in branches_data_dict.values()),
             default=0
         )
 
     queue = deque()
-    # processed_branches_init = set() # Non più necessario con il check successivo
+    # processed_branches_init = set() # Not anymore necessary with the next check
 
-    # Inizializza la coda con le Branch di partenza (quelle che si collegano a una Boundary)
+    # Initialize the queue with the starting branch (those which connect to a boundary)
     for branch_name, branch_data in branches_data_dict.items():
         start_point_info_list = branch_data.get("start_point", [])
-        if not start_point_info_list: # Controllo per start_point mancante o vuoto
-            print(f"Avviso: La branch '{branch_name}' non ha 'start_point' definito o è vuoto. Sarà ignorata nella fase di inizializzazione.")
+        if not start_point_info_list: # Check for start_point missing or void
+            print(f"Warning: Branch '{branch_name}' has no 'start_point' defined or it is empty. Will be ignored in the initialization phase.")
             continue
 
         start_point_info = start_point_info_list[0]
@@ -97,12 +92,12 @@ def to_grafo(tunnel_data_input):
                 queue.append(branch_name)
                 # processed_branches_init.add(branch_name) # Non più necessario
 
-    #$1 Se nessuna branch parte da una boundary definita, è un errore.
+    # If not a single branch starts from a boundary, there is an error.
     if not queue:
-        raise ValueError("Nessuna branch di partenza trovata. Almeno una branch deve avere uno start_point che si riferisce a una Boundary definita.")
+        raise ValueError("No starting branch found. At least one branch must have start_point that refers to a starting boundary.")
 
-    # Elabora le Branches in ordine di collegamento (BFS)
-    visited_for_bfs = set(b[0] for b in queue) # Inizializza con le branch già in coda
+    # Elaborates branches in order of connection (BFS)
+    visited_for_bfs = set(b[0] for b in queue) # Initializes with queued branches
 
     processed_during_bfs = set() # Tiene traccia delle branch aggiunte alla coda e processate
 
@@ -200,7 +195,7 @@ def to_grafo(tunnel_data_input):
     }
 
     # Calcola le coordinate Y
-    y_offset_per_branch_level = 0.5 * (max_num_tubes_in_branch+1) if max_num_tubes_in_branch > 0 else 1.0
+    y_offset_per_branch_level = 0.5 * (max_num_components_in_branch+1) if max_num_components_in_branch > 0 else 1.0
 
     current_y = 0.0
     # Assegna y_coordinate basandosi sull'ordine di input originale
@@ -213,9 +208,9 @@ def to_grafo(tunnel_data_input):
     # Assegna y_coordinate a ciascun tube all'interno della rispettiva branch
     for branch_data in ordered_branches_final.values():
         base_y = branch_data["y_coordinate"]
-        tubes = branch_data["Tubes"]  # Assumiamo che esista e sia un dizionario
+        components = branch_data["Components"]  # Assumiamo che esista e sia un dizionario
 
-        for idx, tube_name in enumerate(tubes):
-            tubes[tube_name]["y_coordinate"] = base_y + 0.5 * idx
+        for idx, component_name in enumerate(components):
+            components[component_name]["y_coordinate"] = base_y + 0.5 * idx
 
     return ordered_branches_final

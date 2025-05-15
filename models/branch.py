@@ -8,12 +8,12 @@ e con la classe `Tunnel` precedentemente definita.
 """
 
 from typing import Dict, List, Optional, Tuple
-from models.tube import Tubes
+from models.component import Components
 from models.segment import Segment
 
-# Valori di default globali per temperatura e pressione se non specificati altrimenti
-DEFAULT_TEMPERATURE = 293.15  # Kelvin
-DEFAULT_PRESSURE = 101325.0  # Pascal
+# # Valori di default globali per temperatura e pressione se non specificati altrimenti
+# DEFAULT_TEMPERATURE = 293.15  # Kelvin
+# DEFAULT_PRESSURE = 101325.0  # Pascal
 
 
 class Branch:
@@ -42,18 +42,18 @@ class Branch:
         self.y_coordinate: Optional[float] = branch_data_processed.get("y_coordinate")
 
         # Determina temperatura e pressione di default per i tubi/stretches in questa branch
-        default_temp = DEFAULT_TEMPERATURE
-        default_press = DEFAULT_PRESSURE
+        # default_temp = DEFAULT_TEMPERATURE
+        # default_press = DEFAULT_PRESSURE
         if self.start_point and self.start_point[0][1] in boundary_data:
             start_boundary_name = self.start_point[0][1]
-            default_temp = boundary_data[start_boundary_name].get("temp", DEFAULT_TEMPERATURE)
-            default_press = boundary_data[start_boundary_name].get("pressione", DEFAULT_PRESSURE)
+            # default_temp = boundary_data[start_boundary_name].get("temp", DEFAULT_TEMPERATURE)
+            # default_press = boundary_data[start_boundary_name].get("pressione", DEFAULT_PRESSURE)
 
 
         self.segments = Segment.create_segments(branch_data_processed,self.absolute_end_x, self.name)
-        self.tubes = Tubes.create_Stretch(self.segments, self.name)
+        self.components = Components.create_Stretch(self.segments, self.name)
 
     def __repr__(self) -> str:
         return (f"Branch(name='{self.name}', type='{self.branch_type}', len={self.length}, "
                 f"abs_x=[{self.absolute_start_x}-{self.absolute_end_x}], "
-                f"num_tubes={len(self.tubes)})")
+                f"num_components={len(self.components)})")

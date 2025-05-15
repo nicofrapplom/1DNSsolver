@@ -14,11 +14,11 @@ class Stretch:
                  perimeter: Optional[float] = None,
                  alpha: Optional[float] = None,
                  delta: Optional[float] = None,
-                 TGM: Optional[float] = None,
+                 # TGM: Optional[float] = None,
                  y_coordinate: Optional[float] = None,
-                 tube: Optional[str] = None,
-                 temperature: Optional[float] = None,
-                 pressure: Optional[float] = None,
+                 component: Optional[str] = None,
+                 # temperature: Optional[float] = None,
+                 # pressure: Optional[float] = None,
                  branch: Optional[str] = None):
         self.name = name
         self.start_x = start_x
@@ -27,11 +27,11 @@ class Stretch:
         self.perimeter = perimeter
         self.alpha = alpha
         self.delta = delta
-        self.TGM = TGM
+        # self.TGM = TGM
         self.y_coordinate = y_coordinate
-        self.tube = tube
-        self.temperature = temperature if temperature is not None else DEFAULT_TEMPERATURE
-        self.pressure = pressure if pressure is not None else DEFAULT_PRESSURE
+        self.component = component
+        # self.temperature = temperature if temperature is not None else DEFAULT_TEMPERATURE
+        # self.pressure = pressure if pressure is not None else DEFAULT_PRESSURE
         self.branch = branch
 
         self.previous: Optional['Stretch'] = None
@@ -39,8 +39,8 @@ class Stretch:
 
     def __repr__(self):
         return (f"Stretch(name={self.name}, x=[{self.start_x}-{self.end_x}], "
-                f"A={self.area}, P={self.perimeter}, α={self.alpha}, δ={self.delta}, TGM={self.TGM}, "
-                f"T={self.temperature:.2f}K, P={self.pressure:.0f}Pa, "
+                f"A={self.area}, P={self.perimeter}, α={self.alpha}, δ={self.delta}, "
+                # f"T={self.temperature:.2f}K, P={self.pressure:.0f}Pa, "
                 f"sector={self.sector}, tube={self.tube})")
 
 def divide_stretches(stretches: List['Stretch'], min_length: float, max_length: float) -> List['Stretch']:
@@ -61,11 +61,11 @@ def divide_stretches(stretches: List['Stretch'], min_length: float, max_length: 
                         end_x=end_x,
                         alpha=stretch.alpha,
                         delta=stretch.delta,
-                        TGM=stretch.TGM,
+                        # TGM=stretch.TGM,
                         y_coordinate=stretch.y_coordinate,
-                        tube=stretch.tube,  # Assegna lo stesso tubo
-                        temperature=stretch.temperature,
-                        pressure=stretch.pressure,
+                        component=stretch.component,  # Assegna lo stesso component
+                        # temperature=stretch.temperature,
+                        # pressure=stretch.pressure,
                         branch=stretch.branch  # Aggiunto
                     )
                     new_stretches.append(new_stretch)

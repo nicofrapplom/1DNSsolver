@@ -29,18 +29,18 @@ class Segment:
         """Crea i segmenti della Branch, con proprietà per alpha, delta, TGM e dati dei tubi."""
         alpha = Branch_data.get("alpha", [])
         delta = Branch_data.get("delta", [])
-        TGM = Branch_data.get("TGM", [])
-        tubes_data = Branch_data.get("Tubes", {})
+        # TGM = Branch_data.get("TGM", [])
+        components_data = Branch_data.get("Components", {})
 
         # Raccogli tutte le tuple di Area e Perimeter da tutti i tubi
         areas_i = []
         perimeters_i = []
 
-        for tubo in tubes_data:
-            if "Area" in tubes_data[tubo]:
-                areas_i.extend(tubes_data[tubo]["Area"])
-            if "Perimeter" in tubes_data[tubo]:
-                perimeters_i.extend(tubes_data[tubo]["Perimeter"])
+        for component in components_data:
+            if "Area" in components_data[component]:
+                areas_i.extend(components_data[component]["Area"])
+            if "Perimeter" in components_data[component]:
+                perimeters_i.extend(components_data[component]["Perimeter"])
 
         areas = unique_tuples(areas_i)
         perimeters = unique_tuples(perimeters_i)
@@ -49,8 +49,8 @@ class Segment:
         all_x = set([x for x, _ in areas] +
                     [x for x, _ in perimeters] +
                     [x for x, _ in alpha] +
-                    [x for x, _ in delta] +
-                    [x for x, _ in TGM])
+                    [x for x, _ in delta]) # +
+                    #[x for x, _ in TGM])
         all_x.add(x_end)
         unique_x = sorted(all_x)
 
@@ -59,7 +59,7 @@ class Segment:
         perimeters.sort(key=lambda x: x[0])
         alpha.sort(key=lambda x: x[0])
         delta.sort(key=lambda x: x[0])
-        TGM.sort(key=lambda x: x[0])
+        # TGM.sort(key=lambda x: x[0])
 
         segments = {}
 
@@ -68,22 +68,22 @@ class Segment:
             start_x = unique_x[i]
             end_x = unique_x[i + 1]
 
-            segment = cls(start_x=start_x, end_x=end_x, branch_name=Branch,y_coordinate=Branch_data["Tubes"]["Main"]["y_coordinate"])
+            segment = cls(start_x=start_x, end_x=end_x, branch_name=Branch,y_coordinate=Branch_data["Components"]["Main"]["y_coordinate"])
 
             # Assegna le proprietà alpha, delta, TGM
             segment.alpha = get_last_value(alpha, start_x)
             segment.delta = get_last_value(delta, start_x)
-            segment.TGM = get_last_value(TGM, start_x)
+            # segment.TGM = get_last_value(TGM, start_x)
 
             # Costruisci il dizionario dei tubi per questo segmento
-            segment.tubes = {}
+            segment.components = {}
 
-            for tubo_name, tubo_data in tubes_data.items():
-                area_val = get_last_value(tubo_data.get("Area", []), start_x)
-                perimeter_val = get_last_value(tubo_data.get("Perimeter", []), start_x)
-                y_coordinate = tubo_data["y_coordinate"]
+            for component_name, component_data in components_data.items():
+                area_val = get_last_value(component_data.get("Area", []), start_x)
+                perimeter_val = get_last_value(component_data.get("Perimeter", []), start_x)
+                y_coordinate = component_data["y_coordinate"]
 
-                segment.tubes[tubo_name] = {
+                segment.components[component_name] = {
                     "Area": area_val,
                     "Perimeter": perimeter_val,
                     "y_coordinate":y_coordinate

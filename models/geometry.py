@@ -10,7 +10,7 @@ Classe Tunnel adattata per coerenza con le classi modello e load_tunnel.
 from typing import Dict,  Optional
 from models.branch import Branch
 from models.stretch import Stretch
-class Tunnel:
+class Geometry:
     """Classe che rappresenta un Tunnel."""
 
     def __init__(self, tunnel_data: Dict, branches_data: Dict):
@@ -23,21 +23,21 @@ class Tunnel:
             # Branch(name: str, branch_data_processed: Dict, boundary_data: Dict)
             self.branches[name] = Branch(name, branch_specific_data, self.boundary)
 
-        self.update_all_main_tube_references()
+        self.update_all_main_component_references()
 
     def __repr__(self) -> str:
         return f"Tunnel(name='{self.name}', branches={list(self.branches.keys())})"
 
-    def update_all_main_tube_references(self):
+    def update_all_main_component_references(self):
         """Aggiorna i riferimenti previous e next solo per il tubo 'Main' di tutte le branch."""
         for branch in self.branches.values():
-            if "Main" in branch.tubes:
-                main_tube = branch.tubes["Main"]
-                if main_tube:
+            if "Main" in branch.components:
+                main_component = branch.components["Main"]
+                if main_component:
                     # Aggiorniamo solo il primo e l'ultimo stretch del tubo 'Main'
-                    main_tube[0].previous = self.find_previous_stretch(branch, branch.start_point[0][1],
+                    main_component[0].previous = self.find_previous_stretch(branch, branch.start_point[0][1],
                                                                                  branch.start_point[0][0])
-                    main_tube[-1].next = self.find_next_stretch(branch, branch.end_point[0][1],
+                    main_component[-1].next = self.find_next_stretch(branch, branch.end_point[0][1],
                                                                           branch.end_point[0][0])
 
     def find_previous_stretch(self, branch, target_branch_or_boundary: str, target_x: float) -> Optional[Stretch]:
@@ -48,8 +48,8 @@ class Tunnel:
                 name=target_branch_or_boundary,
                 start_x=target_x,
                 end_x=target_x,
-                temperature=self.boundary[target_branch_or_boundary]["temp"],
-                pressure=self.boundary[target_branch_or_boundary]["pressione"],
+                # temperature=self.boundary[target_branch_or_boundary]["temp"],
+                # pressure=self.boundary[target_branch_or_boundary]["pressione"],
                 branch="Boundary"
             )
         else:  # Gestione Branch
@@ -69,8 +69,8 @@ class Tunnel:
                 name=target_branch_or_boundary,
                 start_x=target_x,
                 end_x=target_x,
-                temperature=self.boundary[target_branch_or_boundary]["temp"],
-                pressure=self.boundary[target_branch_or_boundary]["pressione"],
+                # temperature=self.boundary[target_branch_or_boundary]["temp"],
+                # pressure=self.boundary[target_branch_or_boundary]["pressione"],
                 branch="Boundary"
             )
         else:  # Gestione Branch

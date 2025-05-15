@@ -10,14 +10,15 @@ from collections import deque
 from models.tunnel import Tunnel # Si assume che la classe Tunnel sia definita qui
 import copy # Per deepcopy
 
-def load_tunnel(tunnel_data_input):
+def load_geometry(geometry_data_input):
+    """Load data from geometry_input and create the Geometry object with its gerarchical structure"""
     """Carica i dati dagli input e crea l'oggetto Tunnel con la struttura gerarchica."""
     try:
         # Calcola le coordinate assolute e relative delle Branches
-        branches_data_with_coordinates = to_grafo(tunnel_data_input)
+        branches_data_with_coordinates = to_grafo(geometry_data_input)
 
-        return Tunnel(
-            tunnel_data=tunnel_data_input,
+        return Geometry(
+            tunnel_data=geometry_data_input,
             branches_data=branches_data_with_coordinates,
         )
     except KeyError as e:

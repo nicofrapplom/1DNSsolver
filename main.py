@@ -1,50 +1,75 @@
 # -*- coding: utf-8 -*-
 """
-Created on Tue Mar 18 14:04:54 2025
-
-@author: d.zaffino, n.frapolli
+main.py
 """
+from input_data.test_geometries.test_01 import tunnel_data
+from models.branch import Branch
+from tests.utilities import count_totals, print_node_connections
+from tests.utilities import report_branch_summary
+from models.network_geometry import NetworkGeometry
+from models.incidence_matrix import IncidenceMatrix
 
-from processing.data_loader import load_geometry
-# from processing.plot_tunnel import plot_connection,plot_tunnel # Importa la funzione plot_tunnel
-from input_data.test_geometries.galleria_breganzona import geometry_data
+from models.channel_visualization import plot_3d, plot_xz
+from models.channel_visualization import plot_3d_ordered, plot_xz_ordered
 
-def main():
-    """Esegue il caricamento e stampa la struttura del tunnel."""
-    print("\nCaricamento del tunnel dai file di input...\n")
+import matplotlib.pyplot as plt
+plt.close('all')
 
-    geometry = load_geometry(geometry_data)
 
-    # if tunnel is None:
-    #     print("\nErrore durante il caricamento del tunnel. Impossibile continuare.")
-    #     return None
-    #
-    # print("\nStruttura del tunnel creata con successo:\n")
-    # print(tunnel)
-    #
-    # # for branch_name, branch_object in tunnel.branches.items():
-    # #     print("    ", branch_object)
-    # #     for section_name, section_object in branch_object.sectors.items():
-    # #         print("      ", section_object)
-    # #     for tube_name, tube_object in branch_object.tubes.items():
-    # #         print("      ", tube_object)
-    #
-    # if tunnel:
-    #     plot_connection(tunnel)  # Chiama la funzione plot_tunnel
-    #     plot_tunnel(tunnel)  # Chiama la funzione plot_tunnel
+branches = {}
 
-    return geometry
+# Build all branches, resolving start_point or alignment if needed
+for name, data in tunnel_data["branches"].items():
+    b = Branch(name, data)
+    if "start_point" in data or "alignment" in data:
+        b.resolve_start_point(branches)
+    b.build_geometry()
+    branches[name] = b
 
-if __name__ == "__main__":
-    tunnel_object = main()
+# Visualizzazioni
+# plot_3d(branches)
+# plot_xz(branches)
 
-    if tunnel_object is not None:
-        print("\nAnalisi dell'oggetto Tunnel:")
-        print(f"Nome del tunnel: {tunnel_object.name}")
-        print(f"Numero di branch: {len(tunnel_object.branches)}")
+# Stampa per branch
 
-        if tunnel_object.branches:
-            first_branch_name = list(tunnel_object.branches.keys())[0]
-            first_branch = tunnel_object.branches[first_branch_name]
-            print(f"\nAnalisi della prima branch: {first_branch.name}")
+report_branch_summary(branches)
 
+
+print_node_connections(branches)
+
+# Deduplicazione globale
+all_nodes = []
+all_segments = []
+for branch in branches.values():
+    all_nodes.extend(branch.nodes)
+    all_segments.extend(branch.segments)
+
+
+
+
+# Costruzione topologia con spezzamento
+geometry = NetworkGeometry(branches)
+geometry.split_segments_on_shared_nodes()
+geometry.check_segment_intersections(tol=1e-6)
+geometry.deduplicate_nodes()
+geometry.assign_ids_by_branch_sequence()
+
+
+
+
+all_nodes = geometry.get_nodes()
+all_segments = geometry.get_segments()
+
+print("\nTotale rete deduplicata:")
+print(f"Nodi totali (dopo assegnazione)   : {len(all_nodes)}")
+print(f"Segmenti effettivi                : {len(all_segments)}")
+
+
+# Incidence matrix
+A = IncidenceMatrix(geometry.get_nodes(), geometry.get_segments())
+
+print(f"\n {A}")
+print(A.matrix)
+
+plot_3d_ordered(geometry.get_nodes(), geometry.get_segments())
+plot_xz_ordered(geometry.get_nodes(), geometry.get_segments())

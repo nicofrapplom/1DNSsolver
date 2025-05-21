@@ -1,8 +1,6 @@
-# -*- coding: utf-8 -*-
 """
+Nome file: input_geometry.py
 File di input combinato
-Creato il: Tue Mar 18 16:00:00 2025
-@author: d.zaffino
 """
 
 geometry_data = {

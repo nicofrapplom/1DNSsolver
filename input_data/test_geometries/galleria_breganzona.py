@@ -1,8 +1,7 @@
-# -*- coding: utf-8 -*-
 """
+Nome file: models/galleria_breganzona.py
 File di input combinato
 Creato il: Tue Mar 18 16:00:00 2025
-@author: d.zaffino
 """
 
 geometry_data = {
@@ -20,7 +19,10 @@ geometry_data = {
             "alpha": [(0.0, 0.0)],
             "delta": [(0.0, 0.0)],
             "Components": {
-                "Main": {"Perimeter": [(0, 40.0)], "Area": [(0, 80.0)]}
+                "Main": {"Perimeter": [(0, 40.0)],
+                         "Area": [(0, 80.0)],
+                         "f": [(0.0, 0.015)],                   # ← perdite distribuite
+                         "beta": [(0.0, 1.0), (2000.0, 0.6)]}   # ← perdite locali
             }
         }
     }

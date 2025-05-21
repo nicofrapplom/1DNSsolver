@@ -2,15 +2,15 @@
 """
 main.py
 """
-from input_data.test_geometries.test_01 import tunnel_data
+
+from input_data.input_geometry import tunnel_data
 from models.branch import Branch
-from tests.utilities import count_totals, print_node_connections
-from tests.utilities import report_branch_summary
+from tests.utils import count_totals, print_node_connections
 from models.network_geometry import NetworkGeometry
 from models.incidence_matrix import IncidenceMatrix
 
-from models.channel_visualization import plot_3d, plot_xz
-from models.channel_visualization import plot_3d_ordered, plot_xz_ordered
+from channel_visualization import plot_3d, plot_xz
+from channel_visualization import plot_3d_ordered, plot_xz_ordered
 
 import matplotlib.pyplot as plt
 plt.close('all')
@@ -31,7 +31,7 @@ for name, data in tunnel_data["branches"].items():
 # plot_xz(branches)
 
 # Stampa per branch
-
+from utils import report_branch_summary
 report_branch_summary(branches)
 
 

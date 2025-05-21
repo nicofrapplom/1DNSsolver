@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-channel_visualization.py
+models/channel_visualization.py
 """
 
 

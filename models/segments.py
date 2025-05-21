@@ -1,5 +1,5 @@
 """
-Segments.py
+models/segments.py
 """
 class Segment:
     def __init__(self, branch_name, segment_id, start_node, end_node,

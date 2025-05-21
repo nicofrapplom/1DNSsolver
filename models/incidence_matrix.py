@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-incidence_matrix.py
+models/incidence_matrix.py
 """
 
 import numpy as np

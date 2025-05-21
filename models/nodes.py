@@ -1,5 +1,5 @@
 """
-Nodes.py
+models/nodes.py
 """
 class Node:
     def __init__(self, branch_name: str, node_id: int, x: float, y: float, z: float):

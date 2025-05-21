@@ -1,6 +1,6 @@
-"""""
-network_geometry.py
-"""""
+"""
+models/network_geometry.py
+"""
 from models.nodes import Node
 from models.segments import Segment
 import math
@@ -60,8 +60,10 @@ class NetworkGeometry:
             if not internal_nodes:
                 updated_segments.append(seg)
             else:
-                internal_nodes.sort()
+                # Ordina i nodi interni secondo la posizione lungo il segmento (proj)
+                internal_nodes.sort(key=lambda tup: tup[0])
                 points = [seg.start_node] + [n for _, n in internal_nodes] + [seg.end_node]
+
                 for i in range(len(points) - 1):
                     updated_segments.append(Segment(
                         branch_name=seg.branch,
@@ -112,9 +114,23 @@ class NetworkGeometry:
                     point2 = q1 + t * v
                     midpoint = 0.5 * (point1 + point2)
 
-                    new_node = Node("Shared", -1, *midpoint)
-                    self.all_nodes.append(new_node)
-                    print(f" Nodo inserito in ({new_node.x:.2f}, {new_node.y:.2f}, {new_node.z:.2f})")
+                    tol_node = 1e-3
+                    existing = None
+                    for node in self.all_nodes:
+                        if (abs(node.x - midpoint[0]) < tol_node and
+                                abs(node.y - midpoint[1]) < tol_node and
+                                abs(node.z - midpoint[2]) < tol_node):
+                            existing = node
+                            break
+
+                    if existing:
+                        new_node = existing
+                        print(
+                            f" Nodo condiviso già esistente in ({new_node.x:.2f}, {new_node.y:.2f}, {new_node.z:.2f}) → riutilizzato")
+                    else:
+                        new_node = Node("Shared", -1, *midpoint)
+                        self.all_nodes.append(new_node)
+                        print(f" Nodo inserito in ({new_node.x:.2f}, {new_node.y:.2f}, {new_node.z:.2f})")
 
                     if seg1 in self.all_segments:
                         self.all_segments.remove(seg1)
@@ -162,7 +178,7 @@ class NetworkGeometry:
         print(f"   → s={s:.2f}, t={t:.2f}, dist={dist:.4f}")
         return (0.01 <= s <= 0.99) and (0.01 <= t <= 0.99) and (dist < tol)
 
-    def deduplicate_nodes(self, tol=1e-6):
+    def deduplicate_nodes(self, tol=1e-2):
         unique_nodes = {}
         coord_to_node = {}
         global_id = 0

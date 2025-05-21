@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-utils.py
+tests/utilities.py
 """
 
 from collections import defaultdict
@@ -45,7 +45,7 @@ def report_branch_summary(branches):
     print_node_connections(branches)
 
 
-def deduplicate_nodes(all_nodes, all_segments, tol=1e-6):
+def deduplicate_nodes(all_nodes, all_segments, tol=1e-3):
     """Elimina nodi con coordinate duplicate e aggiorna i segmenti."""
     unique_nodes = {}
     coord_to_node = {}
@@ -81,6 +81,28 @@ def deduplicate_nodes(all_nodes, all_segments, tol=1e-6):
 
     return list(unique_nodes.values())
 
+def print_connected_nodes(nodes, segments):
+    """Stampa solo i nodi effettivamente collegati da almeno un segmento."""
+    connected_ids = set()
+    for seg in segments:
+        connected_ids.add(seg.start_node.id)
+        connected_ids.add(seg.end_node.id)
+
+    print("\n[INFO] Nodi connessi (visibili nel plot):")
+    for node in nodes:
+        if node.id in connected_ids:
+            print(f"  Node {node.id} ({node.branch}) at ({node.x:.2f}, {node.y:.2f}, {node.z:.2f})")
 
 
-
+def find_near_duplicate_nodes(nodes, tol=1e-3):
+    print("\n[DIAGNOSTICA] Nodi vicini entro", tol, "m")
+    for i, n1 in enumerate(nodes):
+        for j, n2 in enumerate(nodes):
+            if i >= j:
+                continue
+            dx = abs(n1.x - n2.x)
+            dy = abs(n1.y - n2.y)
+            dz = abs(n1.z - n2.z)
+            d = (dx**2 + dy**2 + dz**2)**0.5
+            if d < tol:
+                print(f"  Node {n1.id} ({n1.branch}) ↔ Node {n2.id} ({n2.branch}) → distanza = {d:.4f} m")

@@ -7,7 +7,7 @@ project_root = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(project_root)
 
 # Import locali coerenti col tuo progetto
-from processing.data_loader import load_geometry
+from processing.geometry_loader import load_geometry
 from input_data.test_geometries.galleria_breganzona import geometry_data
 from input_data.input_general import boundaries_conditions, simulation_settings
 from solver.parameters import SimulationParameters

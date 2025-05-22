@@ -70,8 +70,8 @@ class NetworkGeometry:
                         segment_id=-1,
                         start_node=points[i],
                         end_node=points[i + 1],
-                        alpha=seg.alpha,
                         delta=seg.delta,
+                        alpha=seg.alpha,
                         areas=seg.areas,
                         perimeters=seg.perimeters,
                         tubi_presenti=seg.tubi_presenti
@@ -138,19 +138,19 @@ class NetworkGeometry:
                         self.all_segments.remove(seg2)
 
                     self.all_segments.append(
-                        Segment(seg1.branch, segment_id_counter, seg1.start_node, new_node, seg1.alpha, seg1.delta,
+                        Segment(seg1.branch, segment_id_counter, seg1.start_node, new_node, seg1.delta, seg1.alpha,
                                 seg1.areas, seg1.perimeters, seg1.tubi_presenti))
                     segment_id_counter += 1
                     self.all_segments.append(
-                        Segment(seg1.branch, segment_id_counter, new_node, seg1.end_node, seg1.alpha, seg1.delta,
+                        Segment(seg1.branch, segment_id_counter, new_node, seg1.end_node, seg1.delta, seg1.alpha,
                                 seg1.areas, seg1.perimeters, seg1.tubi_presenti))
                     segment_id_counter += 1
                     self.all_segments.append(
-                        Segment(seg2.branch, segment_id_counter, seg2.start_node, new_node, seg2.alpha, seg2.delta,
+                        Segment(seg2.branch, segment_id_counter, seg2.start_node, new_node, seg2.delta, seg2.alpha,
                                 seg2.areas, seg2.perimeters, seg2.tubi_presenti))
                     segment_id_counter += 1
                     self.all_segments.append(
-                        Segment(seg2.branch, segment_id_counter, new_node, seg2.end_node, seg2.alpha, seg2.delta,
+                        Segment(seg2.branch, segment_id_counter, new_node, seg2.end_node, seg2.delta, seg2.alpha,
                                 seg2.areas, seg2.perimeters, seg2.tubi_presenti))
                     segment_id_counter += 1
 

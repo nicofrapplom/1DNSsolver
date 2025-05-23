@@ -37,6 +37,12 @@ mesh = {
     "dx": 10.0
 }
 
+io_control = {
+    "log": True,
+    "log_geometry": True,
+    "log_initialization": True
+}
+
 simulation_settings = {
     "dt": 1.0,
     "t_end": 600.0

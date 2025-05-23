@@ -9,7 +9,7 @@ geometry_data = {
             "start_point": {"from_branch": "Branch_2", "at_length": 250.0},
             "alpha": [(0.0, float("inf"))],
             "delta": [(0.0, 0.0)],
-            "Tubes": {
+            "Components": {
                 "Main": {"Perimeter": [(0.0, 300)], "Area": [(0.0, 300)]}
             },
             # "TGM": [(0.0, 0.0)]
@@ -20,7 +20,7 @@ geometry_data = {
             "start_point": {"absolute": (0.0, 0.0, 0.0)},
             "alpha": [(0.0, 2.0)],
             "delta": [(0.0, 0.0)],
-            "Tubes": {
+            "Components": {
                 "Main": {"Perimeter": [(0, 200)], "Area": [(0, 200), (150.0, 100)]},
                 "Welk": {"Perimeter": [(0, 200)], "Area": [(0, 200)]},
                 "Areazione": {"Perimeter": [(0, 200)], "Area": [(0, 200)]}
@@ -38,7 +38,7 @@ geometry_data = {
                 "to_branch": "Branch_4",
                 "at_length": 250.0
             },
-            "Tubes": {
+            "Components": {
                 "Main": {"Perimeter": [(0, 200)], "Area": [(0, 200)]},
 
             },
@@ -55,7 +55,7 @@ geometry_data = {
                           "position_along": 150.0},  # quanti metri dalla partenza di Branch_3
             "alpha": [(0.0, 2.0)],
             "delta": [(0.0, 0.0)],
-            "Tubes": {
+            "Components": {
                 "Main": {"Perimeter": [(0, 200)], "Area": [(0, 200)]},
                 "Welk": {"Perimeter": [(0, 200)], "Area": [(0, 200)]},
                 "Areazione": {"Perimeter": [(0, 200)], "Area": [(0, 200)]}

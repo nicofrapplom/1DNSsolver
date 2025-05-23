@@ -10,11 +10,6 @@ Created on Tue Mar 18 14:04:54 2025
 import os
 import importlib
 from processing.geometry_loader import load_geometry, import_geometry_data
-from models.channel_visualization import (
-    plot_3d_ordered,
-    plot_xz_ordered,
-    plot_xy_ordered
-)
 
 def main():
     try:

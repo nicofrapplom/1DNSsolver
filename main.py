@@ -3,8 +3,10 @@
 main.py
 """
 
-from input_data.test_setups.Galleria_Breganzona.input_geometry import geometry_data
+from input_data.test_setups.Test_Neva.input_geometry import geometry_data
+import input_data.test_setups.Test_Neva.input_general as ig
 from processing.data_loader import load_geometry
+from io_utils.io_controls import *
 
 # from models.branch import Branch
 # from tests.utils import count_totals, print_node_connections
@@ -20,6 +22,7 @@ from processing.data_loader import load_geometry
 def main():
 
     print("\nLoading the geometry from geometry  file...\n")
+    log_message("geometry", "Reading geometry", ig.io_control)
     geometry = load_geometry(geometry_data)
 
     print("Plotting geometry - test")
@@ -39,7 +42,9 @@ def main():
 
     print("\nCreating the simulation setup...\n")
     # sim = Simulation(mesh, inputs)
-
+    print("\nInitializing simulation...\n")
+    # sim.initialize() tutto dev'essere pronto a questo punto, e gli stati a t = 0 devono essere tutti settati e ben definiti
+    # Eventualmente
 
 
 

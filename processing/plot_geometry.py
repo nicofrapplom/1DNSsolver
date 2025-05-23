@@ -1,4 +1,12 @@
-"""processing/plot_geometry.py"""
+# -*- coding: utf-8 -*-
+"""
+Created on Tue Mar 18 14:04:54 2025
+
+@author: d.zaffino, n.frapolli
+"""
+
+# from input_data.test_setups.Galleria_Breganzona.input_geometry import geometry_data
+
 import os
 import importlib
 from processing.geometry_loader import load_geometry, import_geometry_data
@@ -8,22 +16,11 @@ from models.channel_visualization import (
     plot_xy_ordered
 )
 
-def find_default_test_case():
-    input_dir = os.path.join(os.path.dirname(__file__), "..", "input_data")
-    input_dir = os.path.abspath(input_dir)
-
-    for filename in os.listdir(input_dir):
-        if filename.endswith(".py") and not filename.startswith("__"):
-            module_name = filename[:-3]
-            try:
-                import_geometry_data(module_name)
-                return module_name
-            except Exception:
-                continue
-    raise RuntimeError("Nessun file valido trovato in 'input_data/' con geometry_data definito.")
-
 def main():
     try:
+        print("\nLoading the geometry from input files...\n")
+        geometry = load_geometry(geometry_data)
+
         test_case = find_default_test_case()
         print(f"[INFO] Caso di test rilevato automaticamente: {test_case}")
         geometry, A = load_geometry(test_case)

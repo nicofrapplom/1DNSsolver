@@ -17,12 +17,29 @@ from processing.data_loader import load_geometry
 # import matplotlib.pyplot as plt
 # plt.close('all')
 
-
-
 def main():
 
-    print("\nLoading the geometry from input files...\n")
+    print("\nLoading the geometry from geometry  file...\n")
     geometry = load_geometry(geometry_data)
+
+    print("Plotting geometry - test")
+    geometry.plot('3d','xz','xy')
+
+    print("\nLoading the input data from general input file...\n")
+    # inputs = load_inputs(input_data)
+    # eventualmente inputs, boundaries, equipments, traffic = load_inputs(input_data)
+    # oppure inputs = load_general_inputs(input_data)
+    # boundaries = load_boundaries(input_data)
+    # equipments = load_equipments(input_data)
+    # traffic = load_triaffic(input_data)
+    # ...
+
+    print("\nGenerating mesh from geometry and general inputs...\n")
+    # mesh = Mesh(geometry, input) vedere se passare tutti gli input o no
+
+    print("\nCreating the simulation setup...\n")
+    # sim = Simulation(mesh, inputs)
+
 
 
 

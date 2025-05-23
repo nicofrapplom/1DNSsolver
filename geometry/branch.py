@@ -1,8 +1,8 @@
 """
 models/branch.py
 """
-from models.nodes import Node
-from models.segments import Segment
+from geometry.nodes import Node
+from geometry.segments import Segment
 import numpy as np
 
 
@@ -24,9 +24,9 @@ class Branch:
                 break
         return val
 
-    def get_tube_property_at(self, x, tube_data):
-        return self.get_value_at(x, tube_data.get("Area", []), 0.0), \
-            self.get_value_at(x, tube_data.get("Perimeter", []), 0.0)
+    def get_component_property_at(self, x, component_data):
+        return self.get_value_at(x, component_data.get("Area", []), 0.0), \
+            self.get_value_at(x, component_data.get("Perimeter", []), 0.0)
 
     def resolve_start_point(self, geometry_map: dict):
         if "start_point" in self.data:
@@ -253,9 +253,9 @@ class Branch:
 
         # Costruzione lista x_breaks
         x_breaks = set()
-        for tube in self.data["Tubes"].values():
-            x_breaks.update(x for x, _ in tube.get("Area", []))
-            x_breaks.update(x for x, _ in tube.get("Perimeter", []))
+        for component in self.data["Components"].values():
+            x_breaks.update(x for x, _ in component.get("Area", []))
+            x_breaks.update(x for x, _ in component.get("Perimeter", []))
         x_breaks.update(x for x, _ in self.data.get("delta", []))
         x_breaks.update(x for x, _ in self.data.get("alpha", []))
         x_breaks.add(self.data["length"])
@@ -308,8 +308,8 @@ class Branch:
             self.nodes.append(node)
 
             areas, perimeters, tubi = {}, {}, {}
-            for name, tube in self.data["Tubes"].items():
-                area, perim = self.get_tube_property_at(x0, tube)
+            for name, component in self.data["Components"].items():
+                area, perim = self.get_component_property_at(x0, component)
                 areas[name] = area
                 perimeters[name] = perim
                 tubi[name] = area > 0.0

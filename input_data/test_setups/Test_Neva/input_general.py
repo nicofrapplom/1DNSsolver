@@ -5,8 +5,8 @@ boundaries_conditions = {
     "name": "Tunnel_A",
 
     "Boundary": {
-        "IO": {"temp": 293.15, "pressione": 101325},
-        "IE": {"temp": 293.15, "pressione": 101000}
+        "IO": {"temp": 293.15, "pressione": 101325}, # Dobbiamo poterlo dare anche come rampa temporale, o attraverso un file direttamente nell'input
+        "IE": {"temp": 293.15, "pressione": 101000} # Per alcuni nodi la boundary è velocità (o volume flow)
     },
 
     "Wall_Temperature": {
@@ -28,9 +28,13 @@ boundaries_conditions = {
         "Branch_1": {
             "location": 1000,        # m
             "start_time": 120,       # s
-            "Q_curve": [(0, 0), (10, 1e6), (300, 0)]  # W/m³
+            "Q_curve": [(0, 0), (10, 1e6), (300, 0)]  # W/m³ numeri oppure predefined functions
         }
     }
+}
+
+mesh = {
+    "dx": 10.0
 }
 
 simulation_settings = {

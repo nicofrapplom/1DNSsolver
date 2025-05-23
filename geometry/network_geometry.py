@@ -1,20 +1,46 @@
 """
 models/network_geometry.py
 """
-from models.nodes import Node
-from models.segments import Segment
+from geometry.nodes import Node
+from geometry.segments import Segment
 import math
 import numpy as np
-from scipy.spatial import cKDTree
-from collections import defaultdict, deque
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 
 
 class NetworkGeometry:
-    def __init__(self, branches):
-        self.branches = branches
+    def __init__(self):
+        self.branches = []
         self.all_nodes = []
         self.all_segments = []
-        self.collect_elements()
+
+    @classmethod
+    def from_processed_branches(cls, branches):
+        instance = cls()
+        instance.branches = branches
+        instance.collect_elements()
+        instance.split_segments_on_shared_nodes()
+        instance.check_segment_intersections(tol=1e-6)
+        instance.deduplicate_nodes()
+        instance.assign_ids_by_branch_sequence()
+
+        # all_nodes = geometry.get_nodes()
+        # all_segments = geometry.get_segments()
+        # A = IncidenceMatrix(all_nodes, all_segments)
+
+        # print(f"\n[INFO] Matrice di incidenza (shape {A.matrix.shape}):")
+        # print(A.matrix)
+        #
+        print(f"[INFO] Geometria caricata con successo.")
+        # print(f"[INFO] Nodi totali: {len(all_nodes)}, Segmenti totali: {len(all_segments)}")
+        # print("\n[INFO] Elenco completo dei nodi (ID, branch, coordinate):")
+        # for node in all_nodes:
+        #     print(f"  Node {node.id:>2} | Branch: {node.branch:>8} | (x={node.x:.2f}, y={node.y:.2f}, z={node.z:.2f})")
+        #
+        # return geometry, A
+        return instance
+
 
     def collect_elements(self):
         for b in self.branches.values():
@@ -25,7 +51,7 @@ class NetworkGeometry:
         return (round(node.x / tol), round(node.y / tol), round(node.z / tol))
 
     def split_segments_on_shared_nodes(self, tol=1e-6):
-        print("\n Analisi topologica: controllo nodi condivisi interni ai segmenti")
+        print("\n Topological analysis: check shared nodes internal to the segment")
         updated_segments = []
         coord_map = {}
         for node in self.all_nodes:
@@ -55,12 +81,12 @@ class NetworkGeometry:
                                 internal_nodes.append((proj, node))
 
                                 print(
-                                    f" Nodo condiviso rilevato a ({node.x:.2f}, {node.y:.2f}, {node.z:.2f}) → spezzato {seg.branch} tra N{seg.start_node.id} e N{seg.end_node.id}")
+                                    f" Found shared node at ({node.x:.2f}, {node.y:.2f}, {node.z:.2f}) → divided {seg.branch} between N{seg.start_node.id} and N{seg.end_node.id}")
 
             if not internal_nodes:
                 updated_segments.append(seg)
             else:
-                # Ordina i nodi interni secondo la posizione lungo il segmento (proj)
+                # Reorder the internal nodes based on the position along the segment (proj)
                 internal_nodes.sort(key=lambda tup: tup[0])
                 points = [seg.start_node] + [n for _, n in internal_nodes] + [seg.end_node]
 
@@ -74,14 +100,14 @@ class NetworkGeometry:
                         alpha=seg.alpha,
                         areas=seg.areas,
                         perimeters=seg.perimeters,
-                        tubi_presenti=seg.tubi_presenti
+                        comp_present=seg.comp_present
                     ))
 
         self.all_segments = updated_segments
-        print(f" Segmenti aggiornati: {len(self.all_segments)}")
+        print(f" Updated segments: {len(self.all_segments)}")
 
     def check_segment_intersections(self, tol=1.0):
-        print("\n Verifica intersezioni geometriche tra segmenti")
+        print("\n Verify gometric intersection between segments:")
         segment_id_counter = len(self.all_segments)
         for i, seg1 in enumerate(self.all_segments[:]):
             for j, seg2 in enumerate(self.all_segments[:]):
@@ -89,9 +115,9 @@ class NetworkGeometry:
                     continue
                 if seg1.branch == seg2.branch:
                     continue
-                print(f"→ Verifica {seg1.branch}-S{seg1.id} ↔ {seg2.branch}-S{seg2.id}")
+                print(f"→ Verify {seg1.branch}-S{seg1.id} ↔ {seg2.branch}-S{seg2.id}")
                 if self.segments_intersect(seg1, seg2, tol):
-                    print(f" Intersezione: {seg1.branch}-S{seg1.id} ↔ {seg2.branch}-S{seg2.id}")
+                    print(f" Intersection: {seg1.branch}-S{seg1.id} ↔ {seg2.branch}-S{seg2.id}")
 
                     p1 = np.array(seg1.start_node.coords())
                     p2 = np.array(seg1.end_node.coords())
@@ -126,11 +152,11 @@ class NetworkGeometry:
                     if existing:
                         new_node = existing
                         print(
-                            f" Nodo condiviso già esistente in ({new_node.x:.2f}, {new_node.y:.2f}, {new_node.z:.2f}) → riutilizzato")
+                            f" Shared node already existing at ({new_node.x:.2f}, {new_node.y:.2f}, {new_node.z:.2f}) → reused")
                     else:
                         new_node = Node("Shared", -1, *midpoint)
                         self.all_nodes.append(new_node)
-                        print(f" Nodo inserito in ({new_node.x:.2f}, {new_node.y:.2f}, {new_node.z:.2f})")
+                        print(f" Inserted node in ({new_node.x:.2f}, {new_node.y:.2f}, {new_node.z:.2f})")
 
                     if seg1 in self.all_segments:
                         self.all_segments.remove(seg1)
@@ -199,21 +225,21 @@ class NetworkGeometry:
                 duplicates.append((node, existing))
                 node.id = existing.id
 
-        # aggiorna segmenti
+        # Update segments
         for seg in self.all_segments:
             seg.start_node = coord_to_node[key(seg.start_node)]
             seg.end_node = coord_to_node[key(seg.end_node)]
 
         if duplicates:
-            print("\nNodi condivisi (deduplicati):")
+            print("\nShared nodes (deduplicated):")
             for dup, original in duplicates:
-                print(f"  Nodo {dup.id} ({dup.branch}) è condiviso con Nodo {original.id} ({original.branch})")
+                print(f"  Node {dup.id} ({dup.branch}) is shared with Node {original.id} ({original.branch})")
 
         # aggiorna lista nodi unici
         self.all_nodes = list(unique_nodes.values())
 
     def assign_ids_by_branch_sequence(self):
-        print("\nAssegnazione ID segmenti e nodi SEGUENDO la sequenza costruita + spezzamenti")
+        print("\nAssign ID segments and nodes FOLLOWING the built sequence + divisions")
 
         self.segment_id_counter = 0
         self.node_id_counter = 0
@@ -239,7 +265,7 @@ class NetworkGeometry:
                     else:
                         node.id = node_id_map[id(node)]
 
-                # ID segmento
+                # ID segment
                 seg.id = self.segment_id_counter
                 ordered_segments.append(seg)
                 self.segment_id_counter += 1
@@ -247,8 +273,142 @@ class NetworkGeometry:
         self.all_segments = ordered_segments
         self.all_nodes = ordered_nodes
 
-    def get_segments(self):
-        return self.all_segments
+    # def get_segments(self):
+    #     return self.all_segments
+    #
+    # def get_nodes(self):
+    #     return list({id(n): n for n in self.all_nodes}.values())
 
-    def get_nodes(self):
-        return list({id(n): n for n in self.all_nodes}.values())
+    def plot(self, *views):
+        """
+        Esegue il plotting della geometria secondo le viste specificate.
+        Argomenti possibili: '3d', 'xz', 'xy'
+        """
+        for view in views:
+            view = view.lower()
+            if view == '3d':
+                self.plot_3d_ordered()
+            elif view == 'xz':
+                self.plot_xz_ordered()
+            elif view == 'xy':
+                self.plot_xy_ordered()
+            else:
+                print(f"[AVVISO] Vista '{view}' non riconosciuta. Opzioni valide: '3d', 'xz', 'xy'.")
+
+    def plot_xy_ordered(self):
+        fig, ax = plt.subplots(figsize=(12, 5), constrained_layout=True)
+
+        for node in self.all_nodes:
+            ax.scatter(node.x, node.y, color='blue', s=40)
+            ax.text(node.x, node.y + 0.5, f'i{node.id}', fontsize=8, color='blue')
+
+        for seg in self.all_segments:
+            x0, y0, _ = seg.start_node.coords()
+            x1, y1, _ = seg.end_node.coords()
+            ax.plot([x0, x1], [y0, y1], color='black')
+            xm = (x0 + x1) / 2
+            ym = (y0 + y1) / 2
+            ax.text(xm, ym, f'j{seg.id}', fontsize=8, color='darkred')
+
+        ax.set_xlabel("X [m]")
+        ax.set_ylabel("Y [m]")
+        ax.set_title("Rete ordinata - Vista X-Y - Nodi (i) e Segmenti (j)")
+        ax.grid(True)
+        plt.tight_layout()
+        plt.show()
+
+    def plot_xz_ordered(self):
+        fig, ax = plt.subplots(figsize=(12, 5))
+
+        for node in self.all_nodes:
+            ax.scatter(node.x, node.z, color='blue', s=40)
+            ax.text(node.x, node.z + 0.5, f'i{node.id}', fontsize=8, color='blue')
+
+        for seg in self.all_segments:
+            x0, _, z0 = seg.start_node.coords()
+            x1, _, z1 = seg.end_node.coords()
+            ax.plot([x0, x1], [z0, z1], color='black')
+            xm = (x0 + x1) / 2
+            zm = (z0 + z1) / 2
+            ax.text(xm, zm, f'j{seg.id}', fontsize=8, color='darkred')
+
+        ax.set_xlabel("X [m]")
+        ax.set_ylabel("Z [m]")
+        ax.set_title("Rete ordinata - Vista X-Z - Nodi (i) e Segmenti (j)")
+        ax.grid(True)
+        plt.tight_layout()
+        plt.show()
+
+
+    def plot_3d_ordered(self):
+        fig = plt.figure(figsize=(12, 7))  # niente constrained_layout per 3D
+        ax = fig.add_subplot(111, projection='3d')
+
+        for node in self.all_nodes:
+            ax.scatter(node.x, node.y, node.z, color='blue', s=40)
+            ax.text(node.x, node.y, node.z + 0.5, f'i{node.id}', fontsize=8, color='blue')
+
+        for seg in self.all_segments:
+            x0, y0, z0 = seg.start_node.coords()
+            x1, y1, z1 = seg.end_node.coords()
+            ax.plot([x0, x1], [y0, y1], [z0, z1], color='black')
+            xm = (x0 + x1) / 2
+            ym = (y0 + y1) / 2
+            zm = (z0 + z1) / 2
+            ax.text(xm, ym, zm, f'j{seg.id}', fontsize=8, color='darkred')
+
+        ax.set_xlabel("X [m]")
+        ax.set_ylabel("Y [m]")
+        ax.set_zlabel("Z [m]")
+        ax.set_title("Rete ordinata - Vista 3D - Nodi (i) e Segmenti (j)")
+        plt.tight_layout()
+        plt.show()
+
+# def plot_3d(branches):
+#     fig = plt.figure(figsize=(12, 7))
+#     ax = fig.add_subplot(111, projection='3d')
+#
+#     for branch in branches.values():
+#         for node in branch.nodes:
+#             ax.scatter(node.x, node.y, node.z, color='blue', s=40)
+#             ax.text(node.x, node.y, node.z + 0.5, f'i{node.id}', fontsize=8, color='blue')
+#
+#         for seg in branch.segments:
+#             x0, y0, z0 = seg.start_node.coords()
+#             x1, y1, z1 = seg.end_node.coords()
+#             ax.plot([x0, x1], [y0, y1], [z0, z1], color='black')
+#             xm = (x0 + x1) / 2
+#             ym = (y0 + y1) / 2
+#             zm = (z0 + z1) / 2
+#             ax.text(xm, ym, zm, f'j{seg.id}', fontsize=8, color='darkred')
+#
+#     ax.set_xlabel("X [m]")
+#     ax.set_ylabel("Y [m]")
+#     ax.set_zlabel("Z [m]")
+#     ax.set_title("Tunnel Network - Nodi (i) e Segmenti (j)")
+#     plt.tight_layout()
+#
+#     plt.show()
+#
+#
+# def plot_xz(branches):
+#     fig, ax = plt.subplots(constrained_layout=True)
+#
+#     for branch in branches.values():
+#         for node in branch.nodes:
+#             ax.scatter(node.x, node.z, color='blue', s=40)
+#             ax.text(node.x, node.z + 0.5, f'i{node.id}', fontsize=8, color='blue')
+#
+#         for seg in branch.segments:
+#             x0, _, z0 = seg.start_node.coords()
+#             x1, _, z1 = seg.end_node.coords()
+#             ax.plot([x0, x1], [z0, z1], color='black')
+#             xm = (x0 + x1) / 2
+#             zm = (z0 + z1) / 2
+#             ax.text(xm, zm, f'j{seg.id}', fontsize=8, color='darkred')
+#
+#     ax.set_xlabel("X [m]")
+#     ax.set_ylabel("Z [m]")
+#     ax.set_title("Proiezione X-Z del Tunnel - Nodi (i) e Segmenti (j)")
+#     ax.grid(True)
+#     plt.show()

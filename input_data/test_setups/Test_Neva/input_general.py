@@ -41,6 +41,8 @@ io_control = {
     "log": True,
     "log_geometry": True,
     "log_initialization": True
+
+    "plot_geometry": False
 }
 
 simulation_settings = {

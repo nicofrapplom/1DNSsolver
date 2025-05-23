@@ -21,7 +21,7 @@ from io_utils.io_controls import *
 
 def main():
 
-    print("\nLoading the geometry from geometry  file...\n")
+    # print("\nLoading the geometry from geometry  file...\n")
     log_message("geometry", "Reading geometry", ig.io_control)
     geometry = load_geometry(geometry_data)
 
